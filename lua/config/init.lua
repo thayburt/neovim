@@ -1,33 +1,33 @@
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    vim.fn.system {
-        'git',
-        'clone',
-        '--filter=blob:none',
-        'https://github.com/folke/lazy.nvim.git',
-        '--branch=stable', -- latest stable release
-        lazypath,
-    }
+  vim.fn.system {
+    'git',
+    'clone',
+    '--filter=blob:none',
+    'https://github.com/folke/lazy.nvim.git',
+    '--branch=stable', -- latest stable release
+    lazypath,
+  }
 end
 vim.opt.rtp:prepend(lazypath)
 
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
-require("lazy").setup({
-    spec = { { import = "plugins" }, },
-    checker = { enabled = true },
-    defaults = {
-        version = "*"
-    },
-    install = {
-        missing = true,
-        colorscheme = { "eldritch" },
-    },
-    lockfile = vim.fn.stdpath 'data' .. '/lazy/lazy-lock.json'
-})
+require('lazy').setup {
+  spec = { { import = 'plugins' } },
+  checker = { enabled = true },
+  defaults = {
+    version = '*',
+  },
+  install = {
+    missing = true,
+    colorscheme = { 'eldritch' },
+  },
+  lockfile = vim.fn.stdpath 'data' .. '/lazy/lazy-lock.json',
+}
 
-vim.cmd[[colorscheme eldritch]]
+vim.cmd [[colorscheme eldritch]]
 
 vim.opt.hlsearch = false
 vim.opt.incsearch = true
@@ -35,7 +35,7 @@ vim.opt.incsearch = true
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
-vim.opt.shiftwidth = 0  -- Use tabstop's value
+vim.opt.shiftwidth = 0 -- Use tabstop's value
 vim.opt.shiftround = true
 
 vim.opt.scrolloff = 8
@@ -68,4 +68,4 @@ vim.opt.undofile = true
 
 vim.opt.completeopt = 'menu,fuzzy,noselect,preview'
 
-require('config.lspconfig')
+require 'config.lspconfig'
