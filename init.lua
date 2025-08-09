@@ -13,7 +13,6 @@ require('lazy').setup {
     missing = true,
     colorscheme = { 'eldritch' },
   },
-  lockfile = vim.fn.stdpath 'config' .. '/lazy/lazy-lock.json',
 }
 
 local dropin_loader = require 'utils.dropins'
