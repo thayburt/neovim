@@ -1,3 +1,6 @@
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+
 -- Initialize Lazy.Nvim dropin loader before loading Lazy.Nvim
 require('utils.lazyconf').setup {
   config_dir = 'lua/lazyconf',
