@@ -238,7 +238,7 @@ local function run_dropins_for(plugin_like)
 end
 
 local function setup_autocmds()
-  local aug = vim.api.nvim_create_augroup('PluginConfDropins', { clear = true })
+  local aug = vim.api.nvim_create_augroup('LazyConfDropins', { clear = true })
 
   -- Primary: lazy.nvim emits "User LazyLoad" with event.data = plugin name
   vim.api.nvim_create_autocmd('User', {

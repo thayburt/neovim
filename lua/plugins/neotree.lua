@@ -9,5 +9,11 @@ return {
   lazy = false,
   ---module "neo-tree"
   ---@type neotree.Config?
-  opts = {},
+  opts = {
+    filesystem = {
+      filtered_items = {
+        hide_dotfiles = false,
+      },
+    },
+  },
 }

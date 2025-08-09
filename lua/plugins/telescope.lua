@@ -6,6 +6,7 @@ return {
   {
     'nvim-telescope/telescope.nvim',
     branch = '0.1.x',
+    event = 'VimEnter',
     dependencies = {
       'nvim-lua/plenary.nvim',
       {
@@ -15,6 +16,7 @@ return {
           return vim.fn.executable 'make' == 1
         end,
       },
+      'nvim-tree/nvim-web-devicons',
     },
   },
   {
