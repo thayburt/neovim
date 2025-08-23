@@ -20,13 +20,10 @@ return {
   },
   {
     'saghen/blink.cmp',
-    dependencies = {
-      'L3MON4D3/LuaSnip',
-      version = 'v2.*',
-    },
     version = '1.*',
+    ---@module 'blink.cmp'
+    ---@type blink.cmp.Config
     opts = {
-      snippets = { preset = 'luasnip' },
       sources = {
         default = { 'lsp', 'path', 'snippets', 'buffer' },
         per_filetype = {
