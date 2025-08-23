@@ -197,46 +197,40 @@ local function _lua_find(paths, recurse)
 
   -- Validate recurse
   local rt = type(recurse)
-  if rt ~= "number" and rt ~= "boolean" then
-    vim.notify(
-      "Expected recurse to be number|boolean, got " .. rt .. "; defaulting false",
-      vim.log.levels.ERROR
-    )
+  if rt ~= 'number' and rt ~= 'boolean' then
+    vim.notify('Expected recurse to be number|boolean, got ' .. rt .. '; defaulting false', vim.log.levels.ERROR)
     recurse = false
-    rt = "boolean"
-  elseif rt == "number" then
+    rt = 'boolean'
+  elseif rt == 'number' then
     if recurse < 0 then
-      vim.notify(
-        ("Recurse must be >= 0, got %d; defaulting false"):format(recurse),
-        vim.log.levels.ERROR
-      )
+      vim.notify(('Recurse must be >= 0, got %d; defaulting false'):format(recurse), vim.log.levels.ERROR)
       recurse = false
-      rt = "boolean"
+      rt = 'boolean'
     else
       recurse = math.floor(recurse)
     end
   end
 
   local function trim_slash(p)
-    if p == "/" then
+    if p == '/' then
       return p
     end
-    return (p:gsub("/+$", ""))
+    return (p:gsub('/+$', ''))
   end
 
   local function endswith_lua_case_insensitive(name)
-    return name:lower():sub(-4) == ".lua"
+    return name:lower():sub(-4) == '.lua'
   end
 
   local function is_hidden_name(name)
-    return name:sub(1, 1) == "."
+    return name:sub(1, 1) == '.'
   end
 
   -- Normalize inputs to absolute; map abs -> list of original keys
   local abs_to_keys = {}
   local results = {}
   for _, p in ipairs(paths) do
-    local abs = trim_slash(vim.fs.normalize(vim.fn.fnamemodify(p, ":p")))
+    local abs = trim_slash(vim.fs.normalize(vim.fn.fnamemodify(p, ':p')))
     abs_to_keys[abs] = abs_to_keys[abs] or {}
     table.insert(abs_to_keys[abs], p)
     results[p] = {}
@@ -249,7 +243,7 @@ local function _lua_find(paths, recurse)
   end
 
   local function is_recursing(r)
-    if type(r) == "boolean" then
+    if type(r) == 'boolean' then
       return r
     end
     return r > 0
@@ -265,7 +259,7 @@ local function _lua_find(paths, recurse)
     for _, abs in ipairs(absolute_paths) do
       local covered = false
       for _, kept in ipairs(check_paths) do
-        local prefix = kept == "/" and "/" or (kept .. "/")
+        local prefix = kept == '/' and '/' or (kept .. '/')
         if vim.startswith(abs, prefix) then
           covered = true
           break
@@ -279,7 +273,7 @@ local function _lua_find(paths, recurse)
 
   -- Depth model: "depth 1" lists immediate children of each root.
   local max_depth
-  if rt == "boolean" then
+  if rt == 'boolean' then
     max_depth = recurse and math.huge or 1
   else
     max_depth = recurse + 1
@@ -289,7 +283,7 @@ local function _lua_find(paths, recurse)
 
   local function add_result_for_abs_root(abs_root, full)
     local rel = full:sub(#abs_root + 1)
-    if rel:sub(1, 1) == "/" or rel:sub(1, 1) == "\\" then
+    if rel:sub(1, 1) == '/' or rel:sub(1, 1) == '\\' then
       rel = rel:sub(2)
     end
     for _, orig_key in ipairs(abs_to_keys[abs_root] or {}) do
@@ -314,14 +308,14 @@ local function _lua_find(paths, recurse)
         goto continue
       end
       local full = vim.fs.joinpath(root_abs, name)
-      if t == "file" then
+      if t == 'file' then
         if endswith_lua_case_insensitive(name) then
           add_result_for_abs_root(root_abs, full)
         end
-      elseif t == "directory" then
-        local initp = vim.fs.joinpath(full, "init.lua")
+      elseif t == 'directory' then
+        local initp = vim.fs.joinpath(full, 'init.lua')
         local st = uv.fs_stat(initp)
-        if st and st.type == "file" then
+        if st and st.type == 'file' then
           add_result_for_abs_root(root_abs, initp)
         end
       end
@@ -341,11 +335,11 @@ local function _lua_find(paths, recurse)
           goto continue
         end
         local full = vim.fs.joinpath(cur.dir, name)
-        if t == "file" then
+        if t == 'file' then
           if endswith_lua_case_insensitive(name) then
             add_result_for_abs_root(root_abs, full)
           end
-        elseif t == "directory" then
+        elseif t == 'directory' then
           if cur.depth < max_depth then
             table.insert(q, { dir = full, depth = cur.depth + 1 })
           end
@@ -382,23 +376,23 @@ local function _internal_load(search_paths, options)
   local found_files_map = {}
 
   for _, file_path in ipairs(files_to_load) do
-	  if vim.fn.filereadable(file_path) == 1 then
-	  	local lua_pos = file_path:find('/lua/', 1, true)
-		if lua_pos then
-			local base_file_path = file_path:sub(1, lua_pos + 3)
-			base_file_path = base_file_path:gsub('/+$', '')
-			local rel_file_path = file_path:sub(lua_pos + 5)
-			if rel_file_path ~= '' then
-				found_files_map[base_file_path] = found_files_map[base_file_path] or {}
-				table.insert(found_files_map[base_file_path], rel_file_path)
-			end
-		end
-	  end
+    if vim.fn.filereadable(file_path) == 1 then
+      local lua_pos = file_path:find('/lua/', 1, true)
+      if lua_pos then
+        local base_file_path = file_path:sub(1, lua_pos + 3)
+        base_file_path = base_file_path:gsub('/+$', '')
+        local rel_file_path = file_path:sub(lua_pos + 5)
+        if rel_file_path ~= '' then
+          found_files_map[base_file_path] = found_files_map[base_file_path] or {}
+          table.insert(found_files_map[base_file_path], rel_file_path)
+        end
+      end
+    end
   end
 
   for base_path, files in pairs(opts.finder(dirs_to_load, opts.recurse)) do
-	  found_files_map[base_path] = found_files_map[base_path] or {}
-	vim.list_extend(found_files_map[base_path], files)
+    found_files_map[base_path] = found_files_map[base_path] or {}
+    vim.list_extend(found_files_map[base_path], files)
   end
 
   local modules_to_load = {}

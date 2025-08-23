@@ -13,16 +13,16 @@ local uv = vim.uv or vim.loop
 ---@field ignore_hidden boolean
 ---@field reload_on_update LazyConfReloadMode
 local defaults = {
-  module_prefix = "lazyconf",
+  module_prefix = 'lazyconf',
 
   name_map = function(plugin)
-    if type(plugin) == "table" and plugin.name then
+    if type(plugin) == 'table' and plugin.name then
       return plugin.name
     end
-    if type(plugin) == "table" and plugin.dir then
+    if type(plugin) == 'table' and plugin.dir then
       return vim.fs.basename(plugin.dir)
     end
-    if type(plugin) == "string" then
+    if type(plugin) == 'string' then
       return plugin
     end
     return nil
@@ -33,7 +33,7 @@ local defaults = {
   },
 
   ignore_hidden = true,
-  reload_on_update = "changed",
+  reload_on_update = 'changed',
 }
 
 -- Internal state
@@ -48,19 +48,19 @@ local state = {
 -- Utils
 
 local function join_mod(a, b)
-  if not a or a == "" then
+  if not a or a == '' then
     return b
   end
-  return ("%s.%s"):format(a, b)
+  return ('%s.%s'):format(a, b)
 end
 
 -- Only used for Lua module paths. We keep the original name for state/events.
 local function sanitize_for_module(name)
-  return (name or ""):gsub("%.", "-")
+  return (name or ''):gsub('%.', '-')
 end
 
 local function get_lazy_plugin(name)
-  local ok, Config = pcall(require, "lazy.core.config")
+  local ok, Config = pcall(require, 'lazy.core.config')
   if not ok then
     return nil
   end
@@ -82,16 +82,16 @@ local function get_dir_mtime_ns(path)
     return 0
   end
   local m = st.mtime
-  if type(m) == "number" then
+  if type(m) == 'number' then
     return math.floor(m * 1e9)
-  elseif type(m) == "table" then
+  elseif type(m) == 'table' then
     return (m.sec or 0) * 1e9 + (m.nsec or 0)
   end
   return 0
 end
 
 local function emit_event(pattern, data)
-  pcall(vim.api.nvim_exec_autocmds, "User", {
+  pcall(vim.api.nvim_exec_autocmds, 'User', {
     pattern = pattern,
     modeline = false,
     data = data,
@@ -103,25 +103,23 @@ end
 -- - optionally composes with a user-provided predicate
 local function build_filter_path(module_name)
   local ignore_hidden = state.opts.ignore_hidden
-  local user_fp = state.opts.confloader_opts
-      and state.opts.confloader_opts.filter_path
-    or nil
+  local user_fp = state.opts.confloader_opts and state.opts.confloader_opts.filter_path or nil
 
   local function hidden_ok(path)
     if not ignore_hidden then
       return true
     end
-    local p = (path or ""):gsub("\\", "/")
-    for seg in p:gmatch("[^/]+") do
+    local p = (path or ''):gsub('\\', '/')
+    for seg in p:gmatch '[^/]+' do
       local c = seg:sub(1, 1)
-      if c == "." or c == "_" then
+      if c == '.' or c == '_' then
         return false
       end
     end
     return true
   end
 
-  if type(user_fp) ~= "function" then
+  if type(user_fp) ~= 'function' then
     return hidden_ok
   end
 
@@ -131,13 +129,7 @@ local function build_filter_path(module_name)
     end
     local ok, res = pcall(user_fp, path)
     if not ok then
-      vim.notify(
-        ("lazyconf: filter_path error for %s: %s"):format(
-          module_name,
-          tostring(res)
-        ),
-        vim.log.levels.WARN
-      )
+      vim.notify(('lazyconf: filter_path error for %s: %s'):format(module_name, tostring(res)), vim.log.levels.WARN)
       return false
     end
     return not not res
@@ -154,13 +146,7 @@ local function run_unload_hooks(name)
   for _, fn in ipairs(h.unload) do
     local ok, err = pcall(fn)
     if not ok then
-      vim.notify(
-        ("lazyconf: on_unload for %s failed: %s"):format(
-          name,
-          tostring(err)
-        ),
-        vim.log.levels.ERROR
-      )
+      vim.notify(('lazyconf: on_unload for %s failed: %s'):format(name, tostring(err)), vim.log.levels.ERROR)
     end
   end
 end
@@ -173,13 +159,7 @@ local function run_update_hooks(name)
   for _, fn in ipairs(h.update) do
     local ok, err = pcall(fn)
     if not ok then
-      vim.notify(
-        ("lazyconf: on_update for %s failed: %s"):format(
-          name,
-          tostring(err)
-        ),
-        vim.log.levels.ERROR
-      )
+      vim.notify(('lazyconf: on_update for %s failed: %s'):format(name, tostring(err)), vim.log.levels.ERROR)
     end
   end
 end
@@ -195,20 +175,13 @@ local function load_plugin_config(raw_name, plugin)
   local module_name = sanitize_for_module(raw_name)
   local module_str = join_mod(state.opts.module_prefix, module_name)
 
-  local cl_ok, confloader = pcall(require, "utils.confloader")
+  local cl_ok, confloader = pcall(require, 'utils.confloader')
   if not cl_ok then
-    vim.notify(
-      "lazyconf: failed to require utils.confloader",
-      vim.log.levels.ERROR
-    )
+    vim.notify('lazyconf: failed to require utils.confloader', vim.log.levels.ERROR)
     return
   end
 
-  local cl_opts = vim.tbl_extend(
-    "force",
-    {},
-    state.opts.confloader_opts or {}
-  )
+  local cl_opts = vim.tbl_extend('force', {}, state.opts.confloader_opts or {})
   cl_opts.filter_path = build_filter_path(module_str)
 
   local ok_call, returned = pcall(function()
@@ -216,27 +189,21 @@ local function load_plugin_config(raw_name, plugin)
   end)
 
   if not ok_call then
-    vim.notify(
-      ("lazyconf: confloader error for %s\n%s"):format(
-        module_str,
-        tostring(returned)
-      ),
-      vim.log.levels.ERROR
-    )
+    vim.notify(('lazyconf: confloader error for %s\n%s'):format(module_str, tostring(returned)), vim.log.levels.ERROR)
     return
   end
 
   local unload_hooks, update_hooks = {}, {}
   for _, val in ipairs(returned or {}) do
-    if type(val) == "function" then
+    if type(val) == 'function' then
       table.insert(unload_hooks, val)
-    elseif type(val) == "table" then
+    elseif type(val) == 'table' then
       local u = val.on_unload or val.unload
-      if type(u) == "function" then
+      if type(u) == 'function' then
         table.insert(unload_hooks, u)
       end
       local up = val.on_update or val.update
-      if type(up) == "function" then
+      if type(up) == 'function' then
         table.insert(update_hooks, up)
       end
     end
@@ -255,16 +222,14 @@ local function run_dropins_for(plugin_like)
   end
 
   local raw_name = opts.name_map(plugin_like)
-  if not raw_name or raw_name == "" then
+  if not raw_name or raw_name == '' then
     return
   end
   if state.processed[raw_name] then
     return
   end
 
-  local plugin = type(plugin_like) == "string"
-      and get_lazy_plugin(plugin_like)
-    or plugin_like
+  local plugin = type(plugin_like) == 'string' and get_lazy_plugin(plugin_like) or plugin_like
 
   load_plugin_config(raw_name, plugin)
   state.processed[raw_name] = true
@@ -282,7 +247,7 @@ function M.reload(plugin_like)
   end
   if state.processed[raw_name] then
     run_unload_hooks(raw_name)
-    emit_event("LazyConfUnload", raw_name)
+    emit_event('LazyConfUnload', raw_name)
     clear_plugin_state(raw_name)
   end
   run_dropins_for(plugin_like)
@@ -290,7 +255,7 @@ function M.reload(plugin_like)
 end
 
 function M.reload_all()
-  local ok, Config = pcall(require, "lazy.core.config")
+  local ok, Config = pcall(require, 'lazy.core.config')
   if not ok or not Config.plugins then
     return
   end
@@ -298,7 +263,7 @@ function M.reload_all()
   for name, processed in pairs(state.processed) do
     if processed then
       run_unload_hooks(name)
-      emit_event("LazyConfUnload", name)
+      emit_event('LazyConfUnload', name)
     end
   end
 
@@ -322,7 +287,7 @@ function M.cleanup(plugin_like)
     return false
   end
   run_unload_hooks(raw_name)
-  emit_event("LazyConfUnload", raw_name)
+  emit_event('LazyConfUnload', raw_name)
   clear_plugin_state(raw_name)
   return true
 end
@@ -335,7 +300,7 @@ local function handle_unload_event(ev)
     return
   end
 
-  local ok, Config = pcall(require, "lazy.core.config")
+  local ok, Config = pcall(require, 'lazy.core.config')
   if not ok then
     return
   end
@@ -353,11 +318,11 @@ end
 
 local function handle_update_event()
   local mode = state.opts.reload_on_update
-  if mode == "none" then
+  if mode == 'none' then
     return
   end
 
-  local ok, Config = pcall(require, "lazy.core.config")
+  local ok, Config = pcall(require, 'lazy.core.config')
   if not ok or not Config.plugins then
     return
   end
@@ -368,11 +333,11 @@ local function handle_update_event()
       if p and p.dir then
         local now = get_dir_mtime_ns(p.dir)
         local prev = state.dir_mtime[name] or 0
-        local should = (mode == "all") or (now > 0 and now ~= prev)
+        local should = (mode == 'all') or (now > 0 and now ~= prev)
         if should then
           M.reload(name)
           run_update_hooks(name)
-          emit_event("LazyConfUpdate", name)
+          emit_event('LazyConfUpdate', name)
         end
       end
     end
@@ -380,11 +345,11 @@ local function handle_update_event()
 end
 
 local function setup_autocmds()
-  local aug = vim.api.nvim_create_augroup("LazyConfDropins", { clear = true })
+  local aug = vim.api.nvim_create_augroup('LazyConfDropins', { clear = true })
 
-  vim.api.nvim_create_autocmd("User", {
+  vim.api.nvim_create_autocmd('User', {
     group = aug,
-    pattern = "LazyLoad",
+    pattern = 'LazyLoad',
     callback = function(ev)
       if ev and ev.data then
         vim.schedule(function()
@@ -394,11 +359,11 @@ local function setup_autocmds()
     end,
   })
 
-  vim.api.nvim_create_autocmd("User", {
+  vim.api.nvim_create_autocmd('User', {
     group = aug,
-    pattern = "VeryLazy",
+    pattern = 'VeryLazy',
     callback = function()
-      local ok, Config = pcall(require, "lazy.core.config")
+      local ok, Config = pcall(require, 'lazy.core.config')
       if ok and Config.plugins then
         for _, p in pairs(Config.plugins) do
           if p._ and p._.loaded then
@@ -409,17 +374,17 @@ local function setup_autocmds()
     end,
   })
 
-  vim.api.nvim_create_autocmd("User", {
+  vim.api.nvim_create_autocmd('User', {
     group = aug,
-    pattern = { "LazyUnload", "LazyClean" },
+    pattern = { 'LazyUnload', 'LazyClean' },
     callback = function(ev)
       handle_unload_event(ev)
     end,
   })
 
-  vim.api.nvim_create_autocmd("User", {
+  vim.api.nvim_create_autocmd('User', {
     group = aug,
-    pattern = { "LazyUpdate", "LazySync" },
+    pattern = { 'LazyUpdate', 'LazySync' },
     callback = function()
       handle_update_event()
     end,
@@ -427,7 +392,7 @@ local function setup_autocmds()
 end
 
 function M.setup(opts)
-  state.opts = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
+  state.opts = vim.tbl_deep_extend('force', vim.deepcopy(defaults), opts or {})
   state.opts.confloader_opts = state.opts.confloader_opts or {}
   if state.opts.confloader_opts.recurse == nil then
     state.opts.confloader_opts.recurse = true

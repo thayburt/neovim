@@ -3,7 +3,7 @@ vim.g.maplocalleader = ' '
 
 -- Initialize Lazy.Nvim dropin loader before loading Lazy.Nvim
 require('utils.lazyconf').setup {
-  config_dir = 'lua/lazyconf',
+  config_dir = 'lazyconf',
 }
 
 require('lazy').setup {
@@ -18,6 +18,6 @@ require('lazy').setup {
   },
 }
 
-local dropin_loader = require 'utils.dropins'
+local dropin_loader = require 'utils.confloader'
 dropin_loader.setup { recursive = true }
-dropin_loader.load_module 'config'
+dropin_loader.load_modules 'config'
