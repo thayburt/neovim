@@ -21,6 +21,7 @@ return {
   {
     'saghen/blink.cmp',
     version = '1.*',
+    build = 'cargo build --release',
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
@@ -43,5 +44,12 @@ return {
     'saghen/blink.compat',
     version = '2.*',
     lazy = true,
+  },
+  {
+    'saghen/blink.pairs',
+    build = 'cargo build --release',
+    ---@module 'blink.pairs'
+    ---@type blink.pairs.Config
+    opts = {},
   },
 }
