@@ -27,12 +27,12 @@ local function _fd_find(paths, recurse)
 
   local recurse_type = type(recurse)
   if recurse_type ~= type(0) and recurse_type ~= type(true) then
-    vim.notify("Expected recurse to be a 'number' or 'boolean', got: '" .. recurse_type .. "'; defaulting to false", vim.log.levels.ERROR)
+    vim.notify(("dropconf: expected recurse to be a 'number' or 'boolean', got: '%s'; defaulting to false"):format(recurse_type), vim.log.levels.ERROR)
     recurse = false
     recurse_type = type(recurse)
   elseif recurse_type == type(0) then
     if recurse < 0 then
-      vim.notify(("Recurse must be non-negative, got '%d'; defaulting to false"):format(recurse), vim.log.levels.ERROR)
+      vim.notify(("dropconf: recurse must be non-negative, got '%d'; defaulting to false"):format(recurse), vim.log.levels.ERROR)
       recurse = false
       recurse_type = type(recurse)
     else
@@ -118,8 +118,7 @@ local function _fd_find(paths, recurse)
       file_paths = vim.split(out, '\0', { plain = true, trimempty = true })
     end
   else
-    local msg = ("fd exited %d: '%s'"):format(res.code, (res.stderr or ''):gsub('%s+$', ''))
-    vim.notify(msg, vim.log.levels.WARN)
+    vim.notify(("dropconf: 'fd' exited %d: '%s'"):format(res.code, (res.stderr or '')), vim.log.levels.WARN)
   end
 
   -- Creating a fast look up table to check which path was given
@@ -198,12 +197,12 @@ local function _lua_find(paths, recurse)
   -- Validate recurse
   local rt = type(recurse)
   if rt ~= 'number' and rt ~= 'boolean' then
-    vim.notify('Expected recurse to be number|boolean, got ' .. rt .. '; defaulting false', vim.log.levels.ERROR)
+    vim.notify(('dropconf: expected recurse to be number|boolean, got \'%s\'; defaulting false'):format(type(recurse)), vim.log.levels.ERROR)
     recurse = false
     rt = 'boolean'
   elseif rt == 'number' then
     if recurse < 0 then
-      vim.notify(('Recurse must be >= 0, got %d; defaulting false'):format(recurse), vim.log.levels.ERROR)
+      vim.notify(('dropconf: recurse must be >= 0, got %d; defaulting false'):format(recurse), vim.log.levels.ERROR)
       recurse = false
       rt = 'boolean'
     else
@@ -434,7 +433,7 @@ local function _internal_load(search_paths, options)
   for _, mod in ipairs(modules_to_load) do
     local ok, ret = pcall(dofile, mod.path)
     if not ok then
-      vim.notify('Error loading module: ' .. mod.name .. '\n' .. tostring(ret), vim.log.levels.ERROR)
+      vim.notify(('dropconf: error loading module: \'%s\'\n%s'):format(mod.name, tostring(ret)), vim.log.levels.ERROR)
     elseif ret ~= nil then
       table.insert(results, ret)
     end
