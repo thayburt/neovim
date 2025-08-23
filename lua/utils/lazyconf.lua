@@ -9,7 +9,7 @@ local uv = vim.uv or vim.loop
 ---@class LazyConfOptions
 ---@field module_prefix string
 ---@field name_map fun(plugin: table|string): string|nil
----@field confloader_opts? table
+---@field dropconf_opts? table
 ---@field ignore_hidden boolean
 ---@field reload_on_update LazyConfReloadMode
 local defaults = {
@@ -28,7 +28,7 @@ local defaults = {
     return nil
   end,
 
-  confloader_opts = {
+  dropconf_opts = {
     recurse = true,
   },
 
@@ -98,12 +98,12 @@ local function emit_event(pattern, data)
   })
 end
 
--- Build a filter_path for confloader that:
+-- Build a filter_path for dropconf that:
 -- - excludes hidden segments if enabled
 -- - optionally composes with a user-provided predicate
 local function build_filter_path(module_name)
   local ignore_hidden = state.opts.ignore_hidden
-  local user_fp = state.opts.confloader_opts and state.opts.confloader_opts.filter_path or nil
+  local user_fp = state.opts.dropconf_opts and state.opts.dropconf_opts.filter_path or nil
 
   local function hidden_ok(path)
     if not ignore_hidden then
@@ -170,26 +170,26 @@ local function clear_plugin_state(name)
   state.dir_mtime[name] = nil
 end
 
--- Load the plugin's drop-in configs using utils.confloader
+-- Load the plugin's drop-in configs using utils.dropconf
 local function load_plugin_config(raw_name, plugin)
   local module_name = sanitize_for_module(raw_name)
   local module_str = join_mod(state.opts.module_prefix, module_name)
 
-  local cl_ok, confloader = pcall(require, 'utils.confloader')
+  local cl_ok, dropconf = pcall(require, 'utils.dropconf')
   if not cl_ok then
-    vim.notify('lazyconf: failed to require utils.confloader', vim.log.levels.ERROR)
+    vim.notify('lazyconf: failed to require utils.dropconf', vim.log.levels.ERROR)
     return
   end
 
-  local cl_opts = vim.tbl_extend('force', {}, state.opts.confloader_opts or {})
+  local cl_opts = vim.tbl_extend('force', {}, state.opts.dropconf_opts or {})
   cl_opts.filter_path = build_filter_path(module_str)
 
   local ok_call, returned = pcall(function()
-    return confloader.load_modules(module_str, cl_opts)
+    return dropconf.load_modules(module_str, cl_opts)
   end)
 
   if not ok_call then
-    vim.notify(('lazyconf: confloader error for %s\n%s'):format(module_str, tostring(returned)), vim.log.levels.ERROR)
+    vim.notify(('lazyconf: dropconf error for %s\n%s'):format(module_str, tostring(returned)), vim.log.levels.ERROR)
     return
   end
 
@@ -393,9 +393,9 @@ end
 
 function M.setup(opts)
   state.opts = vim.tbl_deep_extend('force', vim.deepcopy(defaults), opts or {})
-  state.opts.confloader_opts = state.opts.confloader_opts or {}
-  if state.opts.confloader_opts.recurse == nil then
-    state.opts.confloader_opts.recurse = true
+  state.opts.dropconf_opts = state.opts.dropconf_opts or {}
+  if state.opts.dropconf_opts.recurse == nil then
+    state.opts.dropconf_opts.recurse = true
   end
   setup_autocmds()
 end
