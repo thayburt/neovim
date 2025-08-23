@@ -1,6 +1,6 @@
 return {
-    {
-        'xzbdmw/clasp.nvim',
-        opts = {}
-    }
+  {
+    'xzbdmw/clasp.nvim',
+    opts = {},
+  },
 }
