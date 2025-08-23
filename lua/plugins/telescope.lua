@@ -9,15 +9,30 @@ return {
     event = 'VimEnter',
     dependencies = {
       'nvim-lua/plenary.nvim',
-      {
-        'nvim-telescope/telescope-fzf-native.nvim',
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
       'nvim-tree/nvim-web-devicons',
     },
+  },
+  {
+    'nvim-telescope/telescope-fzf-native.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim'
+    },
+    build = 'make',
+    config = function()
+      require('telescope').load_extension('fzf')
+    end,
+    cond = function()
+      return vim.fn.executable 'make' == 1
+    end,
+  },
+  {
+    'nvim-telescope/telescope-frecency.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+    },
+    config = function()
+      require('telescope').load_extension 'frecency'
+    end,
   },
   {
     'nvim-telescope/telescope-file-browser.nvim',
