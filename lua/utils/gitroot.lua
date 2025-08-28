@@ -2,6 +2,8 @@
 ---@field get_root fun(path: string) Get the path to the git root if any
 local M = {}
 
+---@field path string the path to the git root
+---@return string|nil git_worktree_root the toplevel path of the git worktree if one exists
 function M.get_root(path)
   path = path or vim.fn.expand '%:p:h'
   local result = vim
