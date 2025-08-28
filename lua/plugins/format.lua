@@ -16,8 +16,19 @@ return {
   ---@type conform.setupOpts
   opts = {
     formatters_by_ft = {
+      c = { 'clang_format' },
+      cpp = { 'clang_format' },
+      erl = { 'erlfmt' },
+      go = { 'gofmt', 'goimports' },
       lua = { 'stylua' },
+      rust = { 'rustfmt' },
       sh = { 'shfmt' },
+      zig = { 'zigfmt' },
+    },
+    formatters = {
+      clang_format = {
+        args = { '--style=file', '--fallback-style=Google' },
+      },
     },
   },
 }
