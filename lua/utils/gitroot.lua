@@ -1,4 +1,4 @@
----@type GitrootModule
+---@type Gitroot
 ---@field get_root fun(path: string) Get the path to the git root if any
 local M = {}
 
