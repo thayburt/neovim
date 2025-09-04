@@ -12,4 +12,10 @@ return {
     version = '^6',
     lazy = false,
   },
+  {
+    'seblyng/roslyn.nvim',
+    ---@module 'roslyn.config'
+    ---@type RoslynNvimConfig
+    opts = {},
+  },
 }
