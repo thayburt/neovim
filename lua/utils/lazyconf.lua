@@ -1,18 +1,26 @@
 ---@diagnostic disable: need-check-nil
--- utils/lazyconf.lua
 local M = {}
 
 local uv = vim.uv or vim.loop
 
----@alias LazyConfReloadMode "none" | "all" | "changed"
+---@alias lazyconf.ReloadMode "none"|"all"|"changed"
 
----@class LazyConfOptions
+---@class lazyconf.Config
 ---@field module_prefix string
 ---@field name_map fun(plugin: table|string): string|nil
----@field dropconf_opts? table
+---@field dropconf_opts dropconf.PartialConfig
 ---@field ignore_hidden boolean
----@field reload_on_update LazyConfReloadMode
-local defaults = {
+---@field reload_on_update lazyconf.ReloadMode
+
+---@class lazyconf.PartialConfig
+---@field module_prefix? string
+---@field name_map? fun(plugin: table|string): string|nil
+---@field dropconf_opts? dropconf.PartialConfig
+---@field ignore_hidden? boolean
+---@field reload_on_update? lazyconf.ReloadMode
+
+---@type lazyconf.Config
+local config = {
   module_prefix = 'lazyconf',
 
   name_map = function(plugin)
@@ -28,6 +36,7 @@ local defaults = {
     return nil
   end,
 
+  ---@type dropconf.PartialConfig
   dropconf_opts = {
     recurse = true,
   },
@@ -36,17 +45,23 @@ local defaults = {
   reload_on_update = 'changed',
 }
 
--- Internal state
+---@class lazyconf.Hooks
+---@field unload? fun[]
+---@field update? fun[]
+
+---@class lazyconf.State
+---@field processed table<string, boolean> List of plugins and whether they've been loaded
+---@field hooks table<string, lazyconf.Hooks> Hooks provided by the dropins loaded for each plugin
+---@field dir_mtime table<string, number> last modified time for the plugin
+
+---@type lazyconf.State
 local state = {
   processed = {}, -- [plugin_name]=true (original lazy name)
-  hooks = {}, -- [plugin_name]={ unload=fun[]; update=fun[] }
-  dir_mtime = {}, -- [plugin_name]=number (ns)
-  ---@type LazyConfOptions
-  opts = vim.deepcopy(defaults),
+  hooks = {},
+  dir_mtime = {},
 }
 
 -- Utils
-
 local function join_mod(a, b)
   if not a or a == '' then
     return b
@@ -102,8 +117,8 @@ end
 -- - excludes hidden segments if enabled
 -- - optionally composes with a user-provided predicate
 local function build_filter_path(module_name)
-  local ignore_hidden = state.opts.ignore_hidden
-  local user_fp = state.opts.dropconf_opts and state.opts.dropconf_opts.filter_path or nil
+  local ignore_hidden = config.ignore_hidden
+  local user_fp = config.dropconf_opts and config.dropconf_opts.filter_path or nil
 
   local function hidden_ok(path)
     if not ignore_hidden then
@@ -173,7 +188,7 @@ end
 -- Load the plugin's drop-in configs using utils.dropconf
 local function load_plugin_config(raw_name, plugin)
   local module_name = sanitize_for_module(raw_name)
-  local module_str = join_mod(state.opts.module_prefix, module_name)
+  local module_str = join_mod(config.module_prefix, module_name)
 
   local cl_ok, dropconf = pcall(require, 'utils.dropconf')
   if not cl_ok then
@@ -181,7 +196,7 @@ local function load_plugin_config(raw_name, plugin)
     return
   end
 
-  local cl_opts = vim.tbl_extend('force', {}, state.opts.dropconf_opts or {})
+  local cl_opts = vim.tbl_extend('force', {}, config.dropconf_opts or {})
   cl_opts.filter_path = build_filter_path(module_str)
 
   local ok_call, returned = pcall(function()
@@ -216,12 +231,7 @@ local function load_plugin_config(raw_name, plugin)
 end
 
 local function run_dropins_for(plugin_like)
-  local opts = state.opts
-  if not opts then
-    return
-  end
-
-  local raw_name = opts.name_map(plugin_like)
+  local raw_name = config.name_map(plugin_like)
   if not raw_name or raw_name == '' then
     return
   end
@@ -236,12 +246,8 @@ local function run_dropins_for(plugin_like)
 end
 
 -- Public API
-
 function M.reload(plugin_like)
-  if not state.opts then
-    return false
-  end
-  local raw_name = state.opts.name_map(plugin_like)
+  local raw_name = config.name_map(plugin_like)
   if not raw_name then
     return false
   end
@@ -279,10 +285,10 @@ function M.reload_all()
 end
 
 function M.cleanup(plugin_like)
-  if not state.opts then
+  if not config then
     return false
   end
-  local raw_name = state.opts.name_map(plugin_like)
+  local raw_name = config.name_map(plugin_like)
   if not raw_name or not state.processed[raw_name] then
     return false
   end
@@ -317,7 +323,7 @@ local function handle_unload_event(ev)
 end
 
 local function handle_update_event()
-  local mode = state.opts.reload_on_update
+  local mode = config.reload_on_update
   if mode == 'none' then
     return
   end
@@ -391,11 +397,12 @@ local function setup_autocmds()
   })
 end
 
+---@param opts lazyconf.PartialConfig
 function M.setup(opts)
-  state.opts = vim.tbl_deep_extend('force', vim.deepcopy(defaults), opts or {})
-  state.opts.dropconf_opts = state.opts.dropconf_opts or {}
-  if state.opts.dropconf_opts.recurse == nil then
-    state.opts.dropconf_opts.recurse = true
+  config = vim.tbl_deep_extend('keep', opts or {}, vim.deepcopy(config))
+  config.dropconf_opts = config.dropconf_opts or {}
+  if config.dropconf_opts.recurse == nil then
+    config.dropconf_opts.recurse = true
   end
   setup_autocmds()
 end
