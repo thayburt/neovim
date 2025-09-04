@@ -42,3 +42,6 @@ vim.opt.swapfile = true
 vim.opt.undofile = true
 
 vim.opt.completeopt = 'menu,fuzzy,noselect,preview'
+
+vim.opt.spell = true
+vim.opt.spelllang = 'en_ca'
