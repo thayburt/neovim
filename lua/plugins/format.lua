@@ -20,6 +20,7 @@ return {
       cpp = { 'clang_format' },
       erl = { 'erlfmt' },
       go = { 'gofmt', 'goimports' },
+      python = { 'ruff_organize_imports', 'ruff_fix', 'ruff_format' },
       lua = { 'stylua' },
       rust = { 'rustfmt' },
       sh = { 'shfmt' },
