@@ -18,6 +18,6 @@ require('lazy').setup {
   },
 }
 
-local dropin_loader = require 'utils.dropconf'
+local dropin_loader = require 'dropconf'
 dropin_loader.setup { recurse = true }
 dropin_loader.load_modules 'config'
