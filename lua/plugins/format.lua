@@ -20,6 +20,12 @@ return {
       cpp = { 'clang_format' },
       erl = { 'erlfmt' },
       go = { 'gofmt', 'goimports' },
+      python = { 'ruff_organize_imports', 'ruff_fix', 'ruff_format' },
+      javascript = { 'biome-check' },
+      javascriptreact = { 'biome-check' },
+      typescript = { 'biome-check' },
+      typescriptreact = { 'biome-check' },
+
       lua = { 'stylua' },
       rust = { 'rustfmt' },
       sh = { 'shfmt' },

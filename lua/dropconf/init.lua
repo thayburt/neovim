@@ -36,9 +36,9 @@ local defaults = {
 }
 
 if vim.fn.executable 'fd' == 1 or vim.fn.executable 'fdfind' == 1 then
-  defaults.finder = require 'utils.dropconf.fd_find'
+  defaults.finder = require 'dropconf.fd_find'
 else
-  defaults.finder = require 'utils.dropconf.lua_find'
+  defaults.finder = require 'dropconf.lua_find'
 end
 
 ---@param search_paths string[] list of paths to search

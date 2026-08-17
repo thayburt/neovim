@@ -185,14 +185,14 @@ local function clear_plugin_state(name)
   state.dir_mtime[name] = nil
 end
 
--- Load the plugin's drop-in configs using utils.dropconf
+-- Load the plugin's drop-in configs using dropconf
 local function load_plugin_config(raw_name, plugin)
   local module_name = sanitize_for_module(raw_name)
   local module_str = join_mod(config.module_prefix, module_name)
 
-  local cl_ok, dropconf = pcall(require, 'utils.dropconf')
+  local cl_ok, dropconf = pcall(require, 'dropconf')
   if not cl_ok then
-    vim.notify('lazyconf: failed to require utils.dropconf', vim.log.levels.ERROR)
+    vim.notify('lazyconf: failed to require dropconf', vim.log.levels.ERROR)
     return
   end
 
